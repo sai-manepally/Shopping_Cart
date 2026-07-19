@@ -43,26 +43,23 @@ public class AdminController {
     @PostMapping("/saveCategory")
     public String saveCategory(@ModelAttribute Category category, @RequestParam("file") MultipartFile file, HttpSession session) throws IOException {
 
-        String imageName = file!=null ? file.getOriginalFilename():"default.jpg";
+        String imageName = (file != null && !file.isEmpty()) ? file.getOriginalFilename() : "default.jpg";
         category.setImageName(imageName);
 
         Boolean existCategory = categoryService.existCategory(category.getName());
 
         if (existCategory) {
             session.setAttribute("errorMsg", "Category Name Already exists");
-        }
-        else
-        {
+        } else {
             Category saveCategory = categoryService.saveCategory(category);
-            if (saveCategory == null){
+            if (saveCategory == null) {
                 session.setAttribute("errorMsg", "Not saved ! internal server error");
             } else {
-                
-                File saveFile = new ClassPathResource("static/img").getFile();
-                Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "category_img" + File.separator + file.getOriginalFilename());
-
-                System.out.println(path);
-                Files.copy(file.getInputStream(),path, StandardCopyOption.REPLACE_EXISTING);
+                if (file != null && !file.isEmpty()) {
+                    File saveFile = new ClassPathResource("static/img").getFile();
+                    Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + "category_img" + File.separator + file.getOriginalFilename());
+                    Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+                }
                 session.setAttribute("successMsg", "Saved successfully");
             }
         }
